@@ -1,2 +1,2 @@
 # semestralna práca z Počítačovej Grafiky
-![obrazok](https://www.tutorialandexample.com/bezier-curve-in-computer-graphics)
+![obrazok](https://www.tutorialspoint.com/computer_graphics/images/bezier_curves.jpg)

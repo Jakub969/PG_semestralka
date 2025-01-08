@@ -19,38 +19,6 @@ namespace cv1
         {
             Graphics g = e.Graphics;
 
-            //Rectangle r = new(100, 100, 200, 100);
-
-            //using LinearGradientBrush lBrush = new(r, Color.Red, Color.Yellow, LinearGradientMode.BackwardDiagonal);
-
-            //g.FillRectangle(lBrush, r);
-
-            //using Pen pen1 = new(Color.Blue);
-            //g.DrawRectangle(pen1, r);
-
-            //g.DrawArc(pen1, r, 12, 84);
-
-            //Point p1 = new(150, 50);
-            //Point p2 = new(250, 150);
-
-            //g.DrawLine(pen1, p1, p2);
-
-            //using Pen pen2 = new Pen(Color.Red, 4);
-            //Rectangle r2 = new(300, 100, 200, 100);
-            //g.FillEllipse(Brushes.Purple, r2);
-            //g.DrawEllipse(pen2, r2);
-
-            //using Font fnt = new("Verdana", 16);
-            //g.DrawString("GDI+ World", fnt, new SolidBrush(Color.Red), 14, 10);
-
-
-
-            //foreach (Point pt in mousePositions)
-            //{
-            //    Rectangle mouseRectangle = new(pt.X - 25, pt.Y - 25, 50, 50);
-            //    g.DrawEllipse(pen1, mouseRectangle);
-            //}
-
             if (originalImage != null)
             {
                 using Bitmap bitmap = originalImage.ToBitmap();
@@ -127,7 +95,7 @@ namespace cv1
             try
             {
                 byte[] imageBytes = File.ReadAllBytes(selectedString);
-                originalImage = new(imageBytes, imageWidth, imageHeight);
+                originalImage = new GrayscaleImage(imageBytes, imageWidth, imageHeight);
             }
             catch (Exception ex)
             {
@@ -136,6 +104,7 @@ namespace cv1
             }
 
             doubleBufferPanelDrawing.Invalidate();
+            panelHistogram.Invalidate();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -154,5 +123,27 @@ namespace cv1
             imageHeight = (int)numericUpDownHeight.Value;
             ReloadImage();
         }
+
+        private void panelHistogram_Paint(object sender, PaintEventArgs e)
+        {
+            if (originalImage == null) return;
+
+            int[] histogram = originalImage.Histogram;
+
+            Graphics g = e.Graphics;
+            g.Clear(Color.White);
+
+            int max = histogram.Max();
+            float scale = max > 0 ? (float)panelHistogram.Height / max : 1;
+
+            int barWidth = Math.Max(1, panelHistogram.Width / 256);
+
+            for (int i = 0; i < 256; i++)
+            {
+                int barHeight = (int)(histogram[i] * scale);
+                g.FillRectangle(Brushes.Black, i * barWidth, panelHistogram.Height - barHeight, barWidth, barHeight);
+            }
+        }
+
     }
 }

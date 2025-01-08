@@ -9,6 +9,8 @@ namespace cv1
         private GrayscaleImage? originalImage;
         private int imageWidth;
         private int imageHeight;
+        int[,] sobelX = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
+        int[,] sobelY = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
         public Form1()
         {
@@ -145,5 +147,37 @@ namespace cv1
             }
         }
 
+        Bitmap ApplySobelFilter(Bitmap image)
+        {
+            int width = image.Width;
+            int height = image.Height;
+            Bitmap edgeImage = new Bitmap(width, height);
+
+            for (int x = 1; x < width - 1; x++)
+            {
+                for (int y = 1; y < height - 1; y++)
+                {
+                    double gx = 0, gy = 0;
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        for (int j = 0; j < 3; j++)
+                        {
+                            int pixelX = x + i - 1;
+                            int pixelY = y + j - 1;
+                            Color pixel = image.GetPixel(pixelX, pixelY);
+
+                            gx += sobelX[i, j] * pixel.R;
+                            gy += sobelY[i, j] * pixel.R;
+                        }
+                    }
+
+                    int magnitude = (int)Math.Min(Math.Sqrt(gx * gx + gy * gy), 255);
+                    edgeImage.SetPixel(x, y, Color.FromArgb(magnitude, magnitude, magnitude));
+                }
+            }
+
+            return edgeImage;
+        }
     }
 }

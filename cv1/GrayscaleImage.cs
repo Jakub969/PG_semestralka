@@ -84,7 +84,7 @@ namespace cv1
 
             return bitmap;
         }
-        public Bitmap ApplyThreshold(int threshold)
+        public Bitmap ApplyThreshold(byte[,] inputData, int threshold)
         {
             Bitmap bitmap = new Bitmap(Width, Height, PixelFormat.Format1bppIndexed);
 
@@ -103,8 +103,8 @@ namespace cv1
                 int rowOffset = y * stride;
                 for (int x = 0; x < Width; x++)
                 {
-                    // Check if the pixel value is below the threshold
-                    if (Data[y, x] >= threshold)
+                    // Check if the pixel value is above the threshold
+                    if (inputData[y, x] >= threshold)
                     {
                         int byteIndex = rowOffset + (x / 8);
                         int bitIndex = 7 - (x % 8);
@@ -118,7 +118,8 @@ namespace cv1
 
             return bitmap;
         }
-        public PointF? GetLineCenter(int threshold)
+
+        public PointF? GetLineCenter(byte[,] inputData, int threshold)
         {
             long sumX = 0;
             long sumY = 0;
@@ -128,8 +129,8 @@ namespace cv1
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    // Check if the pixel is part of the line
-                    if (Data[y, x] < threshold)
+                    // Check if the pixel is below the threshold
+                    if (inputData[y, x] < threshold)
                     {
                         sumX += x;
                         sumY += y;
@@ -147,6 +148,170 @@ namespace cv1
             return new PointF(centerX, centerY);
         }
 
-    }
+        private double[,] GenerateGaussianKernel(int size, double sigma)
+        {
+            double[,] kernel = new double[size, size];
+            int radius = size / 2;
+            double sigma2 = sigma * sigma;
+            double sum = 0;
 
+            for (int y = -radius; y <= radius; y++)
+            {
+                for (int x = -radius; x <= radius; x++)
+                {
+                    double exponent = -(x * x + y * y) / (2 * sigma2);
+                    double value = Math.Exp(exponent);
+                    kernel[y + radius, x + radius] = value;
+                    sum += value;
+                }
+            }
+
+            // Normalize the kernel
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    kernel[y, x] /= sum;
+                }
+            }
+
+            return kernel;
+        }
+        private byte[,] Convolve(byte[,] data, double[,] kernel)
+        {
+            int width = data.GetLength(1);
+            int height = data.GetLength(0);
+            int kernelSize = kernel.GetLength(0);
+            int kernelRadius = kernelSize / 2;
+            byte[,] result = new byte[height, width];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    double sum = 0;
+
+                    for (int ky = -kernelRadius; ky <= kernelRadius; ky++)
+                    {
+                        for (int kx = -kernelRadius; kx <= kernelRadius; kx++)
+                        {
+                            int posY = y + ky;
+                            int posX = x + kx;
+
+                            if (posY >= 0 && posY < height && posX >= 0 && posX < width)
+                            {
+                                sum += data[posY, posX] * kernel[ky + kernelRadius, kx + kernelRadius];
+                            }
+                        }
+                    }
+
+                    result[y, x] = (byte)Math.Clamp(sum, 0, 255);
+                }
+            }
+
+            return result;
+        }
+        public byte[,] ApplyGaussianHighPassFilter()
+        {
+            // Generate a Gaussian kernel (e.g., size 5, sigma 1.0)
+            double[,] gaussianKernel = GenerateGaussianKernel(7, 2.0);
+
+            // Apply Gaussian blur to get the low-pass (blurred) image
+            byte[,] lowPassData = Convolve(Data, gaussianKernel);
+
+            // Subtract the low-pass image from the original to get high-pass data
+            int width = Data.GetLength(1);
+            int height = Data.GetLength(0);
+            byte[,] highPassData = new byte[height, width];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int value = Data[y, x] - lowPassData[y, x];
+                    // Adjust the value to ensure it's within the byte range
+                    value = Math.Clamp(value + 128, 0, 255);
+                    highPassData[y, x] = (byte)value;
+                }
+            }
+
+            return highPassData;
+        }
+
+        public byte[,] ApplyCombinedFilter()
+        {
+            // Generate a Gaussian kernel (e.g., size 7, sigma 2.0)
+            double[,] gaussianKernel = GenerateGaussianKernel(7, 2.0);
+
+            // Apply Gaussian blur to get the low-pass (blurred) image
+            byte[,] lowPassData = Convolve(Data, gaussianKernel);
+
+            // Subtract the low-pass image from the original to get high-pass data
+            int width = Data.GetLength(1);
+            int height = Data.GetLength(0);
+            byte[,] highPassData = new byte[height, width];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int value = Data[y, x] - lowPassData[y, x];
+                    // Adjust the value to ensure it's within the byte range
+                    value = Math.Clamp(value + 128, 0, 255);
+                    highPassData[y, x] = (byte)value;
+                }
+            }
+
+            // Apply median filter to reduce noise
+            byte[,] filteredData = ApplyMedianFilter(highPassData, 3);
+
+            // Combine the original image with the high-pass filtered image
+            byte[,] combinedData = new byte[height, width];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    combinedData[y, x] = (byte)Math.Clamp((Data[y, x] + filteredData[y, x]) / 2, 0, 255);
+                }
+            }
+
+            return combinedData;
+        }
+
+        private byte[,] ApplyMedianFilter(byte[,] data, int size)
+        {
+            int width = data.GetLength(1);
+            int height = data.GetLength(0);
+            byte[,] result = new byte[height, width];
+            int radius = size / 2;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    List<byte> neighborhood = new List<byte>();
+
+                    for (int ky = -radius; ky <= radius; ky++)
+                    {
+                        for (int kx = -radius; kx <= radius; kx++)
+                        {
+                            int posY = y + ky;
+                            int posX = x + kx;
+
+                            if (posY >= 0 && posY < height && posX >= 0 && posX < width)
+                            {
+                                neighborhood.Add(data[posY, posX]);
+                            }
+                        }
+                    }
+
+                    neighborhood.Sort();
+                    result[y, x] = neighborhood[neighborhood.Count / 2];
+                }
+            }
+
+            return result;
+        }
+
+    }
 }

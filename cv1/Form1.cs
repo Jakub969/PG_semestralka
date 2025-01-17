@@ -23,12 +23,16 @@ namespace cv1
 
             if (originalImage != null)
             {
-                // Apply thresholding to the original image
-                Bitmap bitmap = originalImage.ApplyThreshold(thresholdValue);
+                // Apply the Gaussian high-pass filter
+                //byte[,] highPassData = originalImage.ApplyGaussianHighPassFilter();
+                byte[,] combinedData = originalImage.ApplyCombinedFilter();
+
+                // Apply thresholding to the high-pass filtered data
+                Bitmap bitmap = originalImage.ApplyThreshold(combinedData, thresholdValue);
                 g.DrawImage(bitmap, new Point(0, 0));
 
-                // Get the center of the line
-                PointF? center = originalImage.GetLineCenter(thresholdValue);
+                // Get the center of the line from the high-pass data
+                PointF? center = originalImage.GetLineCenter(combinedData, thresholdValue);
 
                 if (center.HasValue)
                 {
@@ -41,6 +45,7 @@ namespace cv1
                 }
             }
         }
+
 
 
         private void doubleBufferPanelDrawing_MouseDown(object sender, MouseEventArgs e)

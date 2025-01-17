@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,64 +10,80 @@ namespace cv1
 {
     public class GrayscaleImage
     {
-        private byte[] data;
-        private int width; 
-        private int height;
-        private int[] histogram = new int[256];
+        public int Width { get; }
+        public int Height { get; }
+        public byte[,] Data { get; }
+        public int[] Histogram { get; }
 
-        public int Width { get { return width; } }
-        public int Height { get { return height; } }  
-        public byte[] Data { get { return data; } }
-
-        public int[] Histogram { get { return histogram; } }
-
-        public GrayscaleImage(byte[] parData, int parWidth, int parHeight)
+        public GrayscaleImage(string filePath, int width, int height)
         {
-            ArgumentNullException.ThrowIfNull(parData);
+            Width = width;
+            Height = height;
+            Data = new byte[Height, Width];
+            Histogram = new int[256];
 
-            if (parWidth < 16 || parHeight < 16 || parWidth > 1024 || parHeight > 1024)
-                throw new ArgumentException("Grayscale image is out of size");
+            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                // Read the Y component (luminance)
+                for (int y = 0; y < Height; y++)
+                {
+                    int offset = y * Width;
+                    byte[] row = new byte[Width];
+                    int bytesRead = fs.Read(row, 0, Width);
 
-            data = parData;
-            width = parWidth;   
-            height = parHeight; 
+                    if (bytesRead < Width)
+                    {
+                        throw new Exception("Unexpected end of file while reading luminance data.");
+                    }
 
-            RecalculateHistogram();
-        }
+                    for (int x = 0; x < Width; x++)
+                    {
+                        byte pixelValue = row[x];
+                        Data[y, x] = pixelValue;
+                        Histogram[pixelValue]++;
+                    }
+                }
 
-        public GrayscaleImage(int parWidth, int parHeight)
-        {
-            if (parWidth < 16 || parHeight < 16 || parWidth > 1024 || parHeight > 1024)
-                throw new ArgumentException("Grayscale image is out of size");
-
-            width = parWidth;
-            height = parHeight;
-            data = new byte[width * height];
-        }
-
-        public void RecalculateHistogram()
-        {
-            histogram = new int[256];
-
-            // naplnenie histogramu
-            foreach (byte b in data)
-                histogram[b] += 1;
+                // Skip over the U and V components
+                long uvSize = (long)(Width * Height / 2);
+                fs.Seek(uvSize, SeekOrigin.Current);
+            }
         }
 
         public Bitmap ToBitmap()
         {
-            Bitmap resultBitmap = new (width, height);
+            Bitmap bitmap = new Bitmap(Width, Height, PixelFormat.Format8bppIndexed);
 
-            for (int y = 0; y < height; y++)
+            // Use grayscale palette
+            ColorPalette palette = bitmap.Palette;
+            for (int i = 0; i < 256; i++)
             {
-                for (int x = 0; x < width; x++)
+                palette.Entries[i] = Color.FromArgb(i, i, i);
+            }
+            bitmap.Palette = palette;
+
+            BitmapData bmpData = bitmap.LockBits(
+                new Rectangle(0, 0, Width, Height),
+                ImageLockMode.WriteOnly,
+                PixelFormat.Format8bppIndexed);
+
+            int stride = bmpData.Stride;
+            IntPtr ptr = bmpData.Scan0;
+            byte[] pixels = new byte[stride * Height];
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
                 {
-                    byte color = data[x + width * y];
-                    resultBitmap.SetPixel(x, y, Color.FromArgb(color, color, color));
+                    pixels[y * stride + x] = Data[y, x];
                 }
             }
 
-            return resultBitmap;
+            System.Runtime.InteropServices.Marshal.Copy(pixels, 0, ptr, pixels.Length);
+            bitmap.UnlockBits(bmpData);
+
+            return bitmap;
         }
     }
+
 }

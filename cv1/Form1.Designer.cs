@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             panelTools = new Panel();
             label3 = new Label();
             label2 = new Label();
@@ -37,10 +38,15 @@
             comboBox1 = new ComboBox();
             panelHistogram = new DoubleBufferPanel();
             doubleBufferPanelDrawing = new DoubleBufferPanel();
+            contextMenuStrip1 = new ContextMenuStrip(components);
+            menuStrip1 = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            setDirectoryToolStripMenuItem = new ToolStripMenuItem();
             panelTools.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownWidth).BeginInit();
             doubleBufferPanelDrawing.SuspendLayout();
+            menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // panelTools
@@ -52,6 +58,7 @@
             panelTools.Controls.Add(numericUpDownHeight);
             panelTools.Controls.Add(numericUpDownWidth);
             panelTools.Controls.Add(comboBox1);
+            panelTools.Controls.Add(menuStrip1);
             panelTools.Dock = DockStyle.Left;
             panelTools.Location = new Point(0, 0);
             panelTools.Margin = new Padding(3, 4, 3, 4);
@@ -62,7 +69,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(40, 116);
+            label3.Location = new Point(40, 144);
             label3.Name = "label3";
             label3.Size = new Size(97, 20);
             label3.TabIndex = 4;
@@ -71,7 +78,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(45, 77);
+            label2.Location = new Point(45, 106);
             label2.Name = "label2";
             label2.Size = new Size(92, 20);
             label2.TabIndex = 4;
@@ -80,7 +87,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(14, 12);
+            label1.Location = new Point(14, 39);
             label1.Name = "label1";
             label1.Size = new Size(76, 20);
             label1.TabIndex = 3;
@@ -88,7 +95,7 @@
             // 
             // numericUpDownHeight
             // 
-            numericUpDownHeight.Location = new Point(135, 113);
+            numericUpDownHeight.Location = new Point(135, 137);
             numericUpDownHeight.Margin = new Padding(3, 4, 3, 4);
             numericUpDownHeight.Maximum = new decimal(new int[] { 1024, 0, 0, 0 });
             numericUpDownHeight.Minimum = new decimal(new int[] { 16, 0, 0, 0 });
@@ -100,7 +107,7 @@
             // 
             // numericUpDownWidth
             // 
-            numericUpDownWidth.Location = new Point(135, 75);
+            numericUpDownWidth.Location = new Point(135, 99);
             numericUpDownWidth.Margin = new Padding(3, 4, 3, 4);
             numericUpDownWidth.Maximum = new decimal(new int[] { 1024, 0, 0, 0 });
             numericUpDownWidth.Minimum = new decimal(new int[] { 16, 0, 0, 0 });
@@ -113,7 +120,7 @@
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(14, 36);
+            comboBox1.Location = new Point(14, 63);
             comboBox1.Margin = new Padding(3, 4, 3, 4);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(172, 28);
@@ -142,6 +149,36 @@
             doubleBufferPanelDrawing.MouseMove += doubleBufferPanelDrawing_MouseMove;
             doubleBufferPanelDrawing.MouseUp += doubleBufferPanelDrawing_MouseUp;
             // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(61, 4);
+            // 
+            // menuStrip1
+            // 
+            menuStrip1.ImageScalingSize = new Size(20, 20);
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(205, 28);
+            menuStrip1.TabIndex = 5;
+            menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { setDirectoryToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(46, 24);
+            fileToolStripMenuItem.Text = "File";
+            // 
+            // setDirectoryToolStripMenuItem
+            // 
+            setDirectoryToolStripMenuItem.Name = "setDirectoryToolStripMenuItem";
+            setDirectoryToolStripMenuItem.Size = new Size(224, 26);
+            setDirectoryToolStripMenuItem.Text = "Set directory";
+            setDirectoryToolStripMenuItem.Click += setDirectory;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -149,6 +186,7 @@
             ClientSize = new Size(1622, 933);
             Controls.Add(doubleBufferPanelDrawing);
             Controls.Add(panelTools);
+            MainMenuStrip = menuStrip1;
             Margin = new Padding(3, 4, 3, 4);
             Name = "Form1";
             Text = "Form1";
@@ -158,6 +196,8 @@
             ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownWidth).EndInit();
             doubleBufferPanelDrawing.ResumeLayout(false);
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -172,5 +212,9 @@
         private NumericUpDown numericUpDownHeight;
         private NumericUpDown numericUpDownWidth;
         private DoubleBufferPanel panelHistogram;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem setDirectoryToolStripMenuItem;
+        private ContextMenuStrip contextMenuStrip1;
     }
 }

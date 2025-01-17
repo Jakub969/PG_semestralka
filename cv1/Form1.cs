@@ -1,5 +1,6 @@
 using System.Data;
 using System.Drawing.Drawing2D;
+using System.IO;
 
 namespace cv1
 {
@@ -9,8 +10,6 @@ namespace cv1
         private GrayscaleImage? originalImage;
         private int imageWidth;
         private int imageHeight;
-        int[,] sobelX = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
-        int[,] sobelY = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
         public Form1()
         {
@@ -56,33 +55,8 @@ namespace cv1
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            string path = @"C:\\Users\\jakub\\Desktop\\data";
-
-            DataTable table = new();
-            table.Columns.Add("File Name");
-            table.Columns.Add("File Path");
-
-            string[] files = Directory.GetFiles(path);
-
-            foreach (string file in files)
-            {
-                FileInfo fileInfo = new(file);
-                table.Rows.Add(fileInfo.Name, fileInfo.FullName);
-            }
-
-            comboBox1.DataSource = table;
-            comboBox1.DisplayMember = "File Name";
-            comboBox1.ValueMember = "File Path";
-
-            string? selectedString = comboBox1.SelectedValue as string;
-
-            if (string.IsNullOrEmpty(selectedString))
-                return;
-
-            imageHeight = (int)numericUpDownHeight.Value;
-            imageWidth = (int)numericUpDownWidth.Value;
-
-            ReloadImage();
+            string defaultPath = @"C:\\Users\\jakub\\Desktop\\data";
+            LoadFilesFromDirectory(defaultPath);
         }
 
         private void ReloadImage()
@@ -96,8 +70,7 @@ namespace cv1
 
             try
             {
-                byte[] imageBytes = File.ReadAllBytes(selectedString);
-                originalImage = new GrayscaleImage(imageBytes, imageWidth, imageHeight);
+                originalImage = new GrayscaleImage(selectedString, imageWidth, imageHeight);
             }
             catch (Exception ex)
             {
@@ -108,6 +81,7 @@ namespace cv1
             doubleBufferPanelDrawing.Invalidate();
             panelHistogram.Invalidate();
         }
+
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -147,37 +121,47 @@ namespace cv1
             }
         }
 
-        Bitmap ApplySobelFilter(Bitmap image)
+        private void setDirectory(object sender, EventArgs e)
         {
-            int width = image.Width;
-            int height = image.Height;
-            Bitmap edgeImage = new Bitmap(width, height);
-
-            for (int x = 1; x < width - 1; x++)
+            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
             {
-                for (int y = 1; y < height - 1; y++)
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                 {
-                    double gx = 0, gy = 0;
-
-                    for (int i = 0; i < 3; i++)
-                    {
-                        for (int j = 0; j < 3; j++)
-                        {
-                            int pixelX = x + i - 1;
-                            int pixelY = y + j - 1;
-                            Color pixel = image.GetPixel(pixelX, pixelY);
-
-                            gx += sobelX[i, j] * pixel.R;
-                            gy += sobelY[i, j] * pixel.R;
-                        }
-                    }
-
-                    int magnitude = (int)Math.Min(Math.Sqrt(gx * gx + gy * gy), 255);
-                    edgeImage.SetPixel(x, y, Color.FromArgb(magnitude, magnitude, magnitude));
+                    string selectedPath = folderBrowserDialog.SelectedPath;
+                    LoadFilesFromDirectory(selectedPath);
                 }
             }
+        }
 
-            return edgeImage;
+        private void LoadFilesFromDirectory(string selectedPath)
+        {
+            DataTable table = new();
+            table.Columns.Add("File Name");
+            table.Columns.Add("File Path");
+            if (!Directory.Exists(selectedPath))
+                return;
+
+            string[] files = Directory.GetFiles(selectedPath);
+
+            foreach (string file in files)
+            {
+                FileInfo fileInfo = new(file);
+                table.Rows.Add(fileInfo.Name, fileInfo.FullName);
+            }
+
+            comboBox1.DataSource = table;
+            comboBox1.DisplayMember = "File Name";
+            comboBox1.ValueMember = "File Path";
+
+            string? selectedString = comboBox1.SelectedValue as string;
+
+            if (string.IsNullOrEmpty(selectedString))
+                return;
+
+            imageHeight = (int)numericUpDownHeight.Value;
+            imageWidth = (int)numericUpDownWidth.Value;
+
+            ReloadImage();
         }
     }
 }

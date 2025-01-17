@@ -31,34 +31,39 @@
             components = new System.ComponentModel.Container();
             panelTools = new Panel();
             label3 = new Label();
+            numericUpDownThreshold = new NumericUpDown();
             label2 = new Label();
             label1 = new Label();
             numericUpDownHeight = new NumericUpDown();
             numericUpDownWidth = new NumericUpDown();
             comboBox1 = new ComboBox();
-            panelHistogram = new DoubleBufferPanel();
-            doubleBufferPanelDrawing = new DoubleBufferPanel();
-            contextMenuStrip1 = new ContextMenuStrip(components);
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             setDirectoryToolStripMenuItem = new ToolStripMenuItem();
+            labelThreshold = new Label();
+            panelHistogram = new DoubleBufferPanel();
+            doubleBufferPanelDrawing = new DoubleBufferPanel();
+            contextMenuStrip1 = new ContextMenuStrip(components);
             panelTools.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numericUpDownThreshold).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownWidth).BeginInit();
-            doubleBufferPanelDrawing.SuspendLayout();
             menuStrip1.SuspendLayout();
+            doubleBufferPanelDrawing.SuspendLayout();
             SuspendLayout();
             // 
             // panelTools
             // 
             panelTools.BackColor = SystemColors.AppWorkspace;
             panelTools.Controls.Add(label3);
+            panelTools.Controls.Add(numericUpDownThreshold);
             panelTools.Controls.Add(label2);
             panelTools.Controls.Add(label1);
             panelTools.Controls.Add(numericUpDownHeight);
             panelTools.Controls.Add(numericUpDownWidth);
             panelTools.Controls.Add(comboBox1);
             panelTools.Controls.Add(menuStrip1);
+            panelTools.Controls.Add(labelThreshold);
             panelTools.Dock = DockStyle.Left;
             panelTools.Location = new Point(0, 0);
             panelTools.Margin = new Padding(3, 4, 3, 4);
@@ -69,16 +74,26 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(40, 144);
+            label3.Location = new Point(12, 144);
             label3.Name = "label3";
             label3.Size = new Size(97, 20);
             label3.TabIndex = 4;
             label3.Text = "Image height";
             // 
+            // numericUpDownThreshold
+            // 
+            numericUpDownThreshold.Location = new Point(110, 175);
+            numericUpDownThreshold.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
+            numericUpDownThreshold.Name = "numericUpDownThreshold";
+            numericUpDownThreshold.Size = new Size(76, 27);
+            numericUpDownThreshold.TabIndex = 6;
+            numericUpDownThreshold.Value = new decimal(new int[] { 65, 0, 0, 0 });
+            numericUpDownThreshold.ValueChanged += numericUpDownThreshold_ValueChanged;
+            // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(45, 106);
+            label2.Location = new Point(12, 106);
             label2.Name = "label2";
             label2.Size = new Size(92, 20);
             label2.TabIndex = 4;
@@ -95,24 +110,24 @@
             // 
             // numericUpDownHeight
             // 
-            numericUpDownHeight.Location = new Point(135, 137);
+            numericUpDownHeight.Location = new Point(110, 137);
             numericUpDownHeight.Margin = new Padding(3, 4, 3, 4);
             numericUpDownHeight.Maximum = new decimal(new int[] { 1024, 0, 0, 0 });
             numericUpDownHeight.Minimum = new decimal(new int[] { 16, 0, 0, 0 });
             numericUpDownHeight.Name = "numericUpDownHeight";
-            numericUpDownHeight.Size = new Size(51, 27);
+            numericUpDownHeight.Size = new Size(76, 27);
             numericUpDownHeight.TabIndex = 2;
             numericUpDownHeight.Value = new decimal(new int[] { 512, 0, 0, 0 });
             numericUpDownHeight.ValueChanged += numericUpDownHeight_ValueChanged;
             // 
             // numericUpDownWidth
             // 
-            numericUpDownWidth.Location = new Point(135, 99);
+            numericUpDownWidth.Location = new Point(110, 99);
             numericUpDownWidth.Margin = new Padding(3, 4, 3, 4);
             numericUpDownWidth.Maximum = new decimal(new int[] { 1024, 0, 0, 0 });
             numericUpDownWidth.Minimum = new decimal(new int[] { 16, 0, 0, 0 });
             numericUpDownWidth.Name = "numericUpDownWidth";
-            numericUpDownWidth.Size = new Size(51, 27);
+            numericUpDownWidth.Size = new Size(76, 27);
             numericUpDownWidth.TabIndex = 1;
             numericUpDownWidth.Value = new decimal(new int[] { 512, 0, 0, 0 });
             numericUpDownWidth.ValueChanged += numericUpDownWidth_ValueChanged;
@@ -126,6 +141,39 @@
             comboBox1.Size = new Size(172, 28);
             comboBox1.TabIndex = 0;
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            // 
+            // menuStrip1
+            // 
+            menuStrip1.ImageScalingSize = new Size(20, 20);
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(205, 28);
+            menuStrip1.TabIndex = 5;
+            menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { setDirectoryToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(46, 24);
+            fileToolStripMenuItem.Text = "File";
+            // 
+            // setDirectoryToolStripMenuItem
+            // 
+            setDirectoryToolStripMenuItem.Name = "setDirectoryToolStripMenuItem";
+            setDirectoryToolStripMenuItem.Size = new Size(176, 26);
+            setDirectoryToolStripMenuItem.Text = "Set directory";
+            setDirectoryToolStripMenuItem.Click += setDirectory;
+            // 
+            // labelThreshold
+            // 
+            labelThreshold.AutoSize = true;
+            labelThreshold.Location = new Point(12, 182);
+            labelThreshold.Name = "labelThreshold";
+            labelThreshold.Size = new Size(74, 20);
+            labelThreshold.TabIndex = 7;
+            labelThreshold.Text = "Threshold";
             // 
             // panelHistogram
             // 
@@ -155,30 +203,6 @@
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // menuStrip1
-            // 
-            menuStrip1.ImageScalingSize = new Size(20, 20);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
-            menuStrip1.Location = new Point(0, 0);
-            menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(205, 28);
-            menuStrip1.TabIndex = 5;
-            menuStrip1.Text = "menuStrip1";
-            // 
-            // fileToolStripMenuItem
-            // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { setDirectoryToolStripMenuItem });
-            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            fileToolStripMenuItem.Size = new Size(46, 24);
-            fileToolStripMenuItem.Text = "File";
-            // 
-            // setDirectoryToolStripMenuItem
-            // 
-            setDirectoryToolStripMenuItem.Name = "setDirectoryToolStripMenuItem";
-            setDirectoryToolStripMenuItem.Size = new Size(224, 26);
-            setDirectoryToolStripMenuItem.Text = "Set directory";
-            setDirectoryToolStripMenuItem.Click += setDirectory;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -193,11 +217,12 @@
             Load += Form1_Load;
             panelTools.ResumeLayout(false);
             panelTools.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numericUpDownThreshold).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownWidth).EndInit();
-            doubleBufferPanelDrawing.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
+            doubleBufferPanelDrawing.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -216,5 +241,7 @@
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem setDirectoryToolStripMenuItem;
         private ContextMenuStrip contextMenuStrip1;
+        private NumericUpDown numericUpDownThreshold;
+        private Label labelThreshold;
     }
 }

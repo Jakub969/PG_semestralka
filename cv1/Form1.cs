@@ -10,6 +10,7 @@ namespace cv1
         private GrayscaleImage? originalImage;
         private int imageWidth;
         private int imageHeight;
+        private int thresholdValue = 65;
 
         public Form1()
         {
@@ -22,10 +23,25 @@ namespace cv1
 
             if (originalImage != null)
             {
-                using Bitmap bitmap = originalImage.ToBitmap();
+                // Apply thresholding to the original image
+                Bitmap bitmap = originalImage.ApplyThreshold(thresholdValue);
                 g.DrawImage(bitmap, new Point(0, 0));
+
+                // Get the center of the line
+                PointF? center = originalImage.GetLineCenter(thresholdValue);
+
+                if (center.HasValue)
+                {
+                    // Draw a red circle at the center point
+                    float radius = 5f;
+                    using (Brush brush = new SolidBrush(Color.Red))
+                    {
+                        g.FillEllipse(brush, center.Value.X - radius, center.Value.Y - radius, radius * 2, radius * 2);
+                    }
+                }
             }
         }
+
 
         private void doubleBufferPanelDrawing_MouseDown(object sender, MouseEventArgs e)
         {
@@ -132,6 +148,12 @@ namespace cv1
                 }
             }
         }
+        private void numericUpDownThreshold_ValueChanged(object sender, EventArgs e)
+        {
+            thresholdValue = (int)numericUpDownThreshold.Value;
+            doubleBufferPanelDrawing.Invalidate();
+        }
+
 
         private void LoadFilesFromDirectory(string selectedPath)
         {

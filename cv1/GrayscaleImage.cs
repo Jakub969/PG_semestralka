@@ -363,5 +363,22 @@ namespace cv1
             return result;
         }
 
+        public List<Point> ExtractCurvePoints(int threshold)
+        {
+            List<Point> curvePoints = new();
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    if (Data[y, x] < threshold)
+                    {
+                        curvePoints.Add(new Point(x, y));
+                    }
+                }
+            }
+
+            return curvePoints;
+        }
     }
 }

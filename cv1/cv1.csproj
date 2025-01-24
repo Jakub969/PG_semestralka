@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Bezier" Version="0.9.4" />
     <PackageReference Include="UNIZA.FRI.MatrixVectorMath" Version="1.0.1" />
   </ItemGroup>
 

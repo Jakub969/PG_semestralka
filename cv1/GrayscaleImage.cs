@@ -118,6 +118,56 @@ namespace cv1
 
             return bitmap;
         }
+        public int CalculateOtsuThreshold(byte[,] data)
+        {
+            int[] histogram = new int[256];
+            int width = data.GetLength(1);
+            int height = data.GetLength(0);
+
+            // Calculate histogram
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    histogram[data[y, x]]++;
+                }
+            }
+
+            int total = width * height;
+            float sum = 0;
+            for (int i = 0; i < 256; i++)
+            {
+                sum += i * histogram[i];
+            }
+
+            float sumB = 0;
+            int wB = 0;
+            int wF = 0;
+            float varMax = 0;
+            int threshold = 0;
+
+            for (int t = 0; t < 256; t++)
+            {
+                wB += histogram[t];
+                if (wB == 0) continue;
+                wF = total - wB;
+                if (wF == 0) break;
+
+                sumB += t * histogram[t];
+                float mB = sumB / wB;
+                float mF = (sum - sumB) / wF;
+
+                float varBetween = wB * wF * (mB - mF) * (mB - mF);
+                if (varBetween > varMax)
+                {
+                    varMax = varBetween;
+                    threshold = t;
+                }
+            }
+
+            return threshold;
+        }
+
 
         public PointF? GetLineCenter(byte[,] inputData, int threshold)
         {

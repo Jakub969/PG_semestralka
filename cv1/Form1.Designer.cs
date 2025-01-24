@@ -87,7 +87,7 @@
             numericUpDownThreshold.Name = "numericUpDownThreshold";
             numericUpDownThreshold.Size = new Size(76, 27);
             numericUpDownThreshold.TabIndex = 6;
-            numericUpDownThreshold.Value = new decimal(new int[] { 65, 0, 0, 0 });
+            numericUpDownThreshold.Value = new decimal(new int[] { 50, 0, 0, 0 });
             numericUpDownThreshold.ValueChanged += numericUpDownThreshold_ValueChanged;
             // 
             // label2
@@ -193,9 +193,6 @@
             doubleBufferPanelDrawing.Size = new Size(1417, 933);
             doubleBufferPanelDrawing.TabIndex = 1;
             doubleBufferPanelDrawing.Paint += doubleBufferPanelDrawing_Paint;
-            doubleBufferPanelDrawing.MouseDown += doubleBufferPanelDrawing_MouseDown;
-            doubleBufferPanelDrawing.MouseMove += doubleBufferPanelDrawing_MouseMove;
-            doubleBufferPanelDrawing.MouseUp += doubleBufferPanelDrawing_MouseUp;
             // 
             // contextMenuStrip1
             // 

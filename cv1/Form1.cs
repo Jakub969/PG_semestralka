@@ -6,11 +6,12 @@ namespace cv1
 {
     public partial class Form1 : Form
     {
-        private List<Point> mousePositions = [];
         private GrayscaleImage? originalImage;
         private int imageWidth;
         private int imageHeight;
-        private int thresholdValue = 65;
+        private int thresholdValue;
+        private bool changeThrashold = false;
+
 
         public Form1()
         {
@@ -26,14 +27,21 @@ namespace cv1
                 // Apply the Gaussian high-pass filter
                 //byte[,] highPassData = originalImage.ApplyGaussianHighPassFilter();
                 byte[,] combinedData = originalImage.ApplyCombinedFilter();
-
+                if (!changeThrashold)
+                {
+                    // Calculate the Otsu threshold
+                    int otsuThreshold = originalImage.CalculateOtsuThreshold(combinedData);
+                    thresholdValue = otsuThreshold;
+                    changeThrashold = true;
+                }
+                numericUpDownThreshold.Value = thresholdValue;
                 // Apply thresholding to the high-pass filtered data
                 Bitmap bitmap = originalImage.ApplyThreshold(combinedData, thresholdValue);
                 g.DrawImage(bitmap, new Point(0, 0));
 
                 // Get the center of the line from the high-pass data
                 PointF? center = originalImage.GetLineCenter(combinedData, thresholdValue);
-
+                
                 if (center.HasValue)
                 {
                     // Draw a red circle at the center point
@@ -45,35 +53,6 @@ namespace cv1
                 }
             }
         }
-
-
-
-        private void doubleBufferPanelDrawing_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                mousePositions.Add(e.Location);
-            }
-            else if (e.Button == MouseButtons.Right)
-            {
-                mousePositions.Clear();
-            }
-
-            doubleBufferPanelDrawing.Invalidate();
-        }
-
-        private void doubleBufferPanelDrawing_MouseMove(object sender, MouseEventArgs e)
-        {
-
-            doubleBufferPanelDrawing.Invalidate();
-        }
-
-        private void doubleBufferPanelDrawing_MouseUp(object sender, MouseEventArgs e)
-        {
-
-            doubleBufferPanelDrawing.Invalidate();
-        }
-
         private void Form1_Load(object sender, EventArgs e)
         {
             string defaultPath = @"C:\\Users\\jakub\\Desktop\\data";
@@ -107,6 +86,7 @@ namespace cv1
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             ReloadImage();
+            changeThrashold = false;
         }
 
         private void numericUpDownWidth_ValueChanged(object sender, EventArgs e)
@@ -169,6 +149,7 @@ namespace cv1
                 return;
 
             string[] files = Directory.GetFiles(selectedPath);
+            changeThrashold = false;
 
             foreach (string file in files)
             {

@@ -19,7 +19,7 @@ namespace cv1
         private List<BezierCurve> bezierCurves = new();
 
         // Threshold for RDP simplification
-        private const double RDP_EPSILON = 5.0;
+        private const double RDP_EPSILON = 300.0;
 
         public Form1()
         {
@@ -72,13 +72,13 @@ namespace cv1
                 bezierCurves = FitBezierCurves(simplifiedCurvePoints);
 
                 // Draw Bézier curves
-                foreach (var bezier in bezierCurves)
+                /*foreach (var bezier in bezierCurves)
                 {
                     using (Pen pen = new Pen(Color.Blue, 2))
                     {
                         g.DrawBezier(pen, bezier.StartPoint, bezier.ControlPoint1, bezier.ControlPoint2, bezier.EndPoint);
                     }
-                }
+                }*/
             }
         }
         /// <summary>
@@ -93,23 +93,26 @@ namespace cv1
             if (points.Count < 2)
                 return curves;
 
-            // Simple approach: create a Bézier curve between every two consecutive points
-            // with control points being the midpoints for smoothness
             for (int i = 0; i < points.Count - 1; i++)
             {
                 Point p0 = points[i];
                 Point p3 = points[i + 1];
 
-                // Calculate control points
-                // You can improve this by calculating more accurate control points
-                Point p1 = new Point((2 * p0.X + p3.X) / 3, (2 * p0.Y + p3.Y) / 3);
-                Point p2 = new Point((p0.X + 2 * p3.X) / 3, (p0.Y + 2 * p3.Y) / 3);
+                // Calculate tangent vectors for smoothness
+                Point p1 = i > 0
+                    ? new Point((p0.X + points[i - 1].X) / 2, (p0.Y + points[i - 1].Y) / 2)
+                    : p0;
+
+                Point p2 = i < points.Count - 2
+                    ? new Point((p3.X + points[i + 2].X) / 2, (p3.Y + points[i + 2].Y) / 2)
+                    : p3;
 
                 curves.Add(new BezierCurve(p0, p1, p2, p3));
             }
 
             return curves;
         }
+
 
         // Define a simple Bézier curve class
         private class BezierCurve

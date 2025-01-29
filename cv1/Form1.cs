@@ -21,9 +21,15 @@ namespace cv1
         private List<Point> simplifiedCurvePoints = new();
 
         // Threshold for RDP simplification
-        private const double RDP_EPSILON = 10.0;
+        private const double RDP_EPSILON = 5.0;
 
-        private Stopwatch stopwatch = new();
+        private Stopwatch stopwatchTotal = new();
+        private Stopwatch stopwatchFiltering = new();
+        private Stopwatch stopwatchThresholding = new();
+        private Stopwatch stopwatchCenterFinding = new();
+        private Stopwatch stopwatchRDP = new();
+        private Stopwatch stopwatchBezierFitting = new();
+
         public Form1()
         {
             InitializeComponent();
@@ -31,31 +37,44 @@ namespace cv1
 
         private void doubleBufferPanelDrawing_Paint(object sender, PaintEventArgs e)
         {
-            stopwatch.Restart();
+            stopwatchTotal.Restart();
 
             Graphics g = e.Graphics;
 
             if (originalImage != null)
             {
-                // Apply the combined filter
-                byte[,] combinedData = originalImage.ApplyCombinedFilter();
+                
+                byte[,] combinedData = originalImage.Data;
+
+                if (gaussFilter.Checked)
+                {
+                    stopwatchFiltering.Restart();
+                    combinedData = originalImage.ApplyCombinedFilter();
+                    stopwatchFiltering.Stop();
+                }
 
                 if (!changeThrashold)
                 {
                     // Calculate the Otsu threshold
+                    stopwatchThresholding.Restart();
                     int otsuThreshold = originalImage.CalculateOtsuThreshold(combinedData);
-                    thresholdValue = otsuThreshold;
+                    stopwatchThresholding.Stop();
+                    thresholdValue = otsuThreshold - 15;
                     changeThrashold = true;
                 }
 
                 numericUpDownThreshold.Value = thresholdValue;
 
                 // Apply thresholding to the high-pass filtered data
+                stopwatchThresholding.Start();
                 Bitmap bitmap = originalImage.ApplyThreshold(combinedData, thresholdValue);
+                stopwatchThresholding.Stop();
                 g.DrawImage(bitmap, new Point(0, 0));
 
                 // Get the center of the line from the high-pass data
+                stopwatchCenterFinding.Restart();
                 PointF? center = originalImage.GetLineCenter(combinedData, thresholdValue);
+                stopwatchCenterFinding.Stop();
 
                 if (center.HasValue)
                 {
@@ -71,7 +90,9 @@ namespace cv1
                 List<Point> curvePoints = originalImage.ExtractCurvePoints(thresholdValue);
 
                 // Simplify points
+                stopwatchRDP.Restart();
                 simplifiedCurvePoints = GeometryUtils.RamerDouglasPeucker(curvePoints, RDP_EPSILON);
+                stopwatchRDP.Stop();
 
                 foreach (var point in simplifiedCurvePoints)
                 {
@@ -87,7 +108,9 @@ namespace cv1
                     try
                     {
                         // Fit cubic Bezier
+                        stopwatchBezierFitting.Restart();
                         MathNetVector[] bezierPoints = FitCubicBezier(vectors);
+                        stopwatchBezierFitting.Stop();
 
                         // Draw Bezier curve
                         using (Pen pen = new Pen(Color.Blue, 2))
@@ -112,8 +135,18 @@ namespace cv1
                     }
                 }
             }
-            stopwatch.Stop();
-            labelProcessingTime.Text = $"Processing time: {stopwatch.ElapsedMilliseconds} ms";
+            stopwatchTotal.Stop();
+            DisplayProcessingTimes();
+        }
+
+        private void DisplayProcessingTimes()
+        {
+            labelProcessingTime.Text = $"Total: {stopwatchTotal.ElapsedMilliseconds} ms\n" +
+                                       $"Filtering: {stopwatchFiltering.ElapsedMilliseconds} ms\n" +
+                                       $"Thresholding: {stopwatchThresholding.ElapsedMilliseconds} ms\n" +
+                                       $"Center Finding: {stopwatchCenterFinding.ElapsedMilliseconds} ms\n" +
+                                       $"RDP: {stopwatchRDP.ElapsedMilliseconds} ms\n" +
+                                       $"Bezier Fitting: {stopwatchBezierFitting.ElapsedMilliseconds} ms";
         }
 
         private MathNetVector[] ConvertPoints(List<Point> points)
@@ -249,6 +282,18 @@ namespace cv1
             {
                 int barHeight = (int)(histogram[i] * scale);
                 g.FillRectangle(Brushes.Black, i * barWidth, panelHistogram.Height - barHeight, barWidth, barHeight);
+            }
+
+            using (Font font = new Font("Arial", 16))
+            using (Brush brush = new SolidBrush(Color.Red))
+            using (Pen pen = new Pen(Color.Purple))
+            {
+                for (int i = 0; i <= 255; i += 25) // Adjust interval as needed
+                {
+                    int x = i * barWidth;
+                    g.DrawLine(pen, x, panelHistogram.Height, x, panelHistogram.Height - 10);
+                    g.DrawString(i.ToString(), font, brush, x, panelHistogram.Height - 30);
+                }
             }
         }
 

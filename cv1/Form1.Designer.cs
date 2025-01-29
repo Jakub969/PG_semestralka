@@ -30,6 +30,7 @@
         {
             components = new System.ComponentModel.Container();
             panelTools = new Panel();
+            gaussFilter = new CheckBox();
             label3 = new Label();
             numericUpDownThreshold = new NumericUpDown();
             label2 = new Label();
@@ -43,8 +44,8 @@
             labelThreshold = new Label();
             panelHistogram = new DoubleBufferPanel();
             doubleBufferPanelDrawing = new DoubleBufferPanel();
-            contextMenuStrip1 = new ContextMenuStrip(components);
             labelProcessingTime = new Label();
+            contextMenuStrip1 = new ContextMenuStrip(components);
             panelTools.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDownThreshold).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).BeginInit();
@@ -56,6 +57,7 @@
             // panelTools
             // 
             panelTools.BackColor = SystemColors.AppWorkspace;
+            panelTools.Controls.Add(gaussFilter);
             panelTools.Controls.Add(label3);
             panelTools.Controls.Add(numericUpDownThreshold);
             panelTools.Controls.Add(label2);
@@ -71,6 +73,17 @@
             panelTools.Name = "panelTools";
             panelTools.Size = new Size(205, 933);
             panelTools.TabIndex = 0;
+            // 
+            // gaussFilter
+            // 
+            gaussFilter.AccessibleName = "";
+            gaussFilter.AutoSize = true;
+            gaussFilter.Location = new Point(14, 223);
+            gaussFilter.Name = "gaussFilter";
+            gaussFilter.Size = new Size(103, 24);
+            gaussFilter.TabIndex = 8;
+            gaussFilter.Text = "gauss filter";
+            gaussFilter.UseVisualStyleBackColor = true;
             // 
             // label3
             // 
@@ -178,7 +191,7 @@
             // 
             // panelHistogram
             // 
-            panelHistogram.Location = new Point(0, 533);
+            panelHistogram.Location = new Point(0, 512);
             panelHistogram.Name = "panelHistogram";
             panelHistogram.Size = new Size(1415, 400);
             panelHistogram.TabIndex = 0;
@@ -196,12 +209,6 @@
             doubleBufferPanelDrawing.TabIndex = 1;
             doubleBufferPanelDrawing.Paint += doubleBufferPanelDrawing_Paint;
             // 
-            // contextMenuStrip1
-            // 
-            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(61, 4);
-            // 
             // labelProcessingTime
             // 
             labelProcessingTime.AutoSize = true;
@@ -210,6 +217,12 @@
             labelProcessingTime.Size = new Size(50, 20);
             labelProcessingTime.TabIndex = 1;
             labelProcessingTime.Text = "label4";
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(61, 4);
             // 
             // Form1
             // 
@@ -253,5 +266,6 @@
         private NumericUpDown numericUpDownThreshold;
         private Label labelThreshold;
         private Label labelProcessingTime;
+        private CheckBox gaussFilter;
     }
 }

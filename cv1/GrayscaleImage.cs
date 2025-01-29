@@ -371,7 +371,7 @@ namespace cv1
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    if (Data[y, x] >= threshold)
+                    if (Data[y, x] < threshold)
                     {
                         curvePoints.Add(new Point(x, y));
                     }

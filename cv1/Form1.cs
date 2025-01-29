@@ -2,6 +2,10 @@ using System.Data;
 using System.Drawing.Drawing2D;
 using System.Geometry;
 using System.IO;
+using System.Numerics;
+using MathNet.Numerics.LinearAlgebra;
+using MathNetVector = MathNet.Numerics.LinearAlgebra.Vector<double>;
+
 
 namespace cv1
 {
@@ -15,11 +19,8 @@ namespace cv1
         // Add a list to store the simplified curve points
         private List<Point> simplifiedCurvePoints = new();
 
-        // Add a list to store the Bézier curves
-        private List<BezierCurve> bezierCurves = new();
-
         // Threshold for RDP simplification
-        private const double RDP_EPSILON = 300.0;
+        private const double RDP_EPSILON = 10.0;
 
         public Form1()
         {
@@ -68,67 +69,113 @@ namespace cv1
                 // Simplify points
                 simplifiedCurvePoints = GeometryUtils.RamerDouglasPeucker(curvePoints, RDP_EPSILON);
 
-                // Fit Bézier curves
-                bezierCurves = FitBezierCurves(simplifiedCurvePoints);
-
-                // Draw Bézier curves
-                /*foreach (var bezier in bezierCurves)
+                foreach (var point in simplifiedCurvePoints)
                 {
-                    using (Pen pen = new Pen(Color.Blue, 2))
+                    g.FillEllipse(Brushes.Green, point.X - 2, point.Y - 2, 4, 4);
+                }
+
+
+                if (simplifiedCurvePoints.Count >= 4)
+                {
+                    // Convert to MathNetVector[]
+                    MathNetVector[] vectors = ConvertPoints(simplifiedCurvePoints);
+
+                    try
                     {
-                        g.DrawBezier(pen, bezier.StartPoint, bezier.ControlPoint1, bezier.ControlPoint2, bezier.EndPoint);
+                        // Fit cubic Bezier
+                        MathNetVector[] bezierPoints = FitCubicBezier(vectors);
+
+                        // Draw Bezier curve
+                        using (Pen pen = new Pen(Color.Blue, 2))
+                        {
+                            PointF start = new((float)bezierPoints[0][0], (float)bezierPoints[0][1]);
+                            PointF control1 = new((float)bezierPoints[1][0], (float)bezierPoints[1][1]);
+                            PointF control2 = new((float)bezierPoints[2][0], (float)bezierPoints[2][1]);
+                            PointF end = new((float)bezierPoints[3][0], (float)bezierPoints[3][1]);
+                            Console.WriteLine($"P0: {bezierPoints[0][0]}, {bezierPoints[0][1]}");
+                            Console.WriteLine($"P1: {bezierPoints[1][0]}, {bezierPoints[1][1]}");
+                            Console.WriteLine($"P2: {bezierPoints[2][0]}, {bezierPoints[2][1]}");
+                            Console.WriteLine($"P3: {bezierPoints[3][0]}, {bezierPoints[3][1]}");
+
+
+                            g.DrawBezier(pen, start, control1, control2, end);
+                        }
                     }
-                }*/
+                    catch (Exception ex)
+                    {
+                        // Optional: Handle exceptions
+                        Console.WriteLine($"Bezier fitting error: {ex.Message}");
+                    }
+                }
             }
         }
-        /// <summary>
-        /// Fits cubic Bézier curves to the list of points.
-        /// </summary>
-        /// <param name="points">Simplified list of points.</param>
-        /// <returns>List of Bézier curves.</returns>
-        private List<BezierCurve> FitBezierCurves(List<Point> points)
+
+        private MathNetVector[] ConvertPoints(List<Point> points)
         {
-            List<BezierCurve> curves = new();
-
-            if (points.Count < 2)
-                return curves;
-
-            for (int i = 0; i < points.Count - 1; i++)
-            {
-                Point p0 = points[i];
-                Point p3 = points[i + 1];
-
-                // Calculate tangent vectors for smoothness
-                Point p1 = i > 0
-                    ? new Point((p0.X + points[i - 1].X) / 2, (p0.Y + points[i - 1].Y) / 2)
-                    : p0;
-
-                Point p2 = i < points.Count - 2
-                    ? new Point((p3.X + points[i + 2].X) / 2, (p3.Y + points[i + 2].Y) / 2)
-                    : p3;
-
-                curves.Add(new BezierCurve(p0, p1, p2, p3));
-            }
-
-            return curves;
+            return points.Select(p => MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(new double[] { p.X, p.Y })).ToArray();
         }
 
-
-        // Define a simple Bézier curve class
-        private class BezierCurve
+        private MathNetVector[] FitCubicBezier(MathNetVector[] points)
         {
-            public Point StartPoint { get; }
-            public Point ControlPoint1 { get; }
-            public Point ControlPoint2 { get; }
-            public Point EndPoint { get; }
+            int n = points.Length;
 
-            public BezierCurve(Point start, Point control1, Point control2, Point end)
+            if (n < 4)
             {
-                StartPoint = start;
-                ControlPoint1 = control1;
-                ControlPoint2 = control2;
-                EndPoint = end;
+                throw new ArgumentException("At least 4 points are required to fit a cubic Bezier curve.");
             }
+
+            // Fixed control points
+            MathNetVector P0 = points[0];
+            MathNetVector P3 = points[n - 1];
+
+            // Parameter t values for each point (chord length parameterization)
+            double[] t = new double[n];
+            t[0] = 0;
+
+            for (int i = 1; i < n; i++)
+            {
+                t[i] = t[i - 1] + (points[i] - points[i - 1]).L2Norm();
+            }
+            for (int i = 1; i < n; i++)
+            {
+                t[i] /= t[n - 1];
+            }
+
+            // Create matrix A and vectors Bx, By for least squares solution
+            var A = Matrix<double>.Build.Dense(n, 2);
+            var Bx = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(n);
+            var By = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(n);
+
+            for (int i = 0; i < n; i++)
+            {
+                double u = 1 - t[i];
+                double tt = t[i] * t[i];
+                double uu = u * u;
+                double ttt = tt * t[i];
+                double uuu = uu * u;
+
+                // Note: we are solving for P1 and P2, so we use the fixed P0 and P3
+                A[i, 0] = 3 * uu * t[i]; // Coefficient for P1
+                A[i, 1] = 3 * u * tt;    // Coefficient for P2
+
+                Bx[i] = points[i][0] - (uuu * P0[0] + ttt * P3[0]);
+                By[i] = points[i][1] - (uuu * P0[1] + ttt * P3[1]);
+            }
+
+            // Solve the least squares problem
+            var solutionX = A.QR().Solve(Bx);
+            var solutionY = A.QR().Solve(By);
+
+            // Extract control points
+            MathNetVector P1 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(2);
+            MathNetVector P2 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(2);
+
+            P1[0] = solutionX[0];
+            P1[1] = solutionY[0];
+            P2[0] = solutionX[1];
+            P2[1] = solutionY[1];
+
+            return new MathNetVector[] { P0, P1, P2, P3 };
         }
         private void Form1_Load(object sender, EventArgs e)
         {

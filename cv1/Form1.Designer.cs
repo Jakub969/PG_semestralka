@@ -44,6 +44,7 @@
             panelHistogram = new DoubleBufferPanel();
             doubleBufferPanelDrawing = new DoubleBufferPanel();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            labelProcessingTime = new Label();
             panelTools.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDownThreshold).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).BeginInit();
@@ -185,6 +186,7 @@
             // 
             // doubleBufferPanelDrawing
             // 
+            doubleBufferPanelDrawing.Controls.Add(labelProcessingTime);
             doubleBufferPanelDrawing.Controls.Add(panelHistogram);
             doubleBufferPanelDrawing.Dock = DockStyle.Fill;
             doubleBufferPanelDrawing.Location = new Point(205, 0);
@@ -199,6 +201,15 @@
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
+            // 
+            // labelProcessingTime
+            // 
+            labelProcessingTime.AutoSize = true;
+            labelProcessingTime.Location = new Point(876, 175);
+            labelProcessingTime.Name = "labelProcessingTime";
+            labelProcessingTime.Size = new Size(50, 20);
+            labelProcessingTime.TabIndex = 1;
+            labelProcessingTime.Text = "label4";
             // 
             // Form1
             // 
@@ -220,6 +231,7 @@
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             doubleBufferPanelDrawing.ResumeLayout(false);
+            doubleBufferPanelDrawing.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -240,5 +252,6 @@
         private ContextMenuStrip contextMenuStrip1;
         private NumericUpDown numericUpDownThreshold;
         private Label labelThreshold;
+        private Label labelProcessingTime;
     }
 }

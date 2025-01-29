@@ -5,6 +5,7 @@ using System.IO;
 using System.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNetVector = MathNet.Numerics.LinearAlgebra.Vector<double>;
+using System.Diagnostics;
 
 
 namespace cv1
@@ -22,6 +23,7 @@ namespace cv1
         // Threshold for RDP simplification
         private const double RDP_EPSILON = 10.0;
 
+        private Stopwatch stopwatch = new();
         public Form1()
         {
             InitializeComponent();
@@ -29,6 +31,8 @@ namespace cv1
 
         private void doubleBufferPanelDrawing_Paint(object sender, PaintEventArgs e)
         {
+            stopwatch.Restart();
+
             Graphics g = e.Graphics;
 
             if (originalImage != null)
@@ -108,6 +112,8 @@ namespace cv1
                     }
                 }
             }
+            stopwatch.Stop();
+            labelProcessingTime.Text = $"Processing time: {stopwatch.ElapsedMilliseconds} ms";
         }
 
         private MathNetVector[] ConvertPoints(List<Point> points)

@@ -59,7 +59,7 @@ namespace cv1
                     stopwatchThresholding.Restart();
                     int otsuThreshold = originalImage.CalculateOtsuThreshold(combinedData);
                     stopwatchThresholding.Stop();
-                    thresholdValue = otsuThreshold - 15;
+                    thresholdValue = otsuThreshold;
                     changeThrashold = true;
                 }
 

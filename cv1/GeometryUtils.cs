@@ -53,7 +53,7 @@ namespace cv1
         }
 
         /// <summary>
-        /// Calculates the perpendicular distance from a point to a line segment.
+        /// Vypočíta vzdialenosť bodu od úsečky.
         /// </summary>
         private static double PerpendicularDistance(Point pt, Point lineStart, Point lineEnd)
         {
@@ -62,7 +62,6 @@ namespace cv1
 
             if (dx == 0 && dy == 0)
             {
-                // It's a point not a line segment.
                 dx = pt.X - lineStart.X;
                 dy = pt.Y - lineStart.Y;
                 return Math.Sqrt(dx * dx + dy * dy);

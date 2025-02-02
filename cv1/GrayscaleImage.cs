@@ -54,7 +54,6 @@ namespace cv1
         {
             Bitmap bitmap = new Bitmap(Width, Height, PixelFormat.Format8bppIndexed);
 
-            // Use grayscale palette
             ColorPalette palette = bitmap.Palette;
             for (int i = 0; i < 256; i++)
             {
@@ -103,7 +102,7 @@ namespace cv1
                 int rowOffset = y * stride;
                 for (int x = 0; x < Width; x++)
                 {
-                    // Check if the pixel value is above the threshold
+                    // Kontrola, či je pixel nad prahovou hodnotou
                     if (inputData[y, x] >= threshold)
                     {
                         int byteIndex = rowOffset + (x / 8);
@@ -124,7 +123,7 @@ namespace cv1
             int width = data.GetLength(1);
             int height = data.GetLength(0);
 
-            // Calculate histogram
+            // Vypočítanie histogramu
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -179,7 +178,7 @@ namespace cv1
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    // Check if the pixel is below the threshold
+                    // Kontrola, či je pixel pod prahovou hodnotou
                     if (inputData[y, x] < threshold)
                     {
                         sumX += x;
@@ -205,7 +204,6 @@ namespace cv1
             
             for (int x = 0; x < Width; x++)
             {
-                // Check if the pixel is below the threshold
                 if (inputData[0, x] < threshold)
                 {
                         sumX += x;
@@ -228,7 +226,6 @@ namespace cv1
 
             for (int x = 0; x < Width; x++)
             {
-                // Check if the pixel is below the threshold
                 if (inputData[Height - 1, x] < threshold)
                 {
                     sumX += x;
@@ -262,7 +259,7 @@ namespace cv1
                 }
             }
 
-            // Normalize the kernel
+            // Normalizácia jadra
             for (int y = 0; y < size; y++)
             {
                 for (int x = 0; x < size; x++)
@@ -309,7 +306,7 @@ namespace cv1
         }
         public byte[,] ApplyGaussianHighPassFilter()
         {
-            double[,] gaussianKernel = GenerateGaussianKernel(7, 2.0);
+            double[,] gaussianKernel = GenerateGaussianKernel(5, 1.0);
 
             // Použitie konvolúcie na získanie nízkofrekvenčných dát
             byte[,] lowPassData = Convolve(Data, gaussianKernel);
@@ -365,7 +362,7 @@ namespace cv1
             return combinedData;
         }
 
-        private byte[,] ApplyMedianFilter(byte[,] data, int size)
+        public byte[,] ApplyMedianFilter(byte[,] data, int size)
         {
             int width = data.GetLength(1);
             int height = data.GetLength(0);

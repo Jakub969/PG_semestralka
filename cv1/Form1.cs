@@ -16,17 +16,16 @@ namespace cv1
         private int imageWidth;
         private int imageHeight;
         private int thresholdValue;
-        private bool changeThrashold = false;
-        // Add a list to store the simplified curve points
+        private bool changeThreshold = false;
+        
         private List<Point> simplifiedCurvePoints = new();
 
-        // Threshold for RDP simplification
+        // Prahova hodnota pre Ramer-Douglas-Peucker algoritmus
         private const double RDP_EPSILON = 5.0;
 
         private Stopwatch stopwatchTotal = new();
         private Stopwatch stopwatchFiltering = new();
         private Stopwatch stopwatchThresholding = new();
-        private Stopwatch stopwatchCenterFinding = new();
         private Stopwatch stopwatchRDP = new();
         private Stopwatch stopwatchBezierFitting = new();
 
@@ -53,43 +52,28 @@ namespace cv1
                     stopwatchFiltering.Stop();
                 }
 
-                if (!changeThrashold)
+                if (!changeThreshold)
                 {
-                    // Calculate the Otsu threshold
+                    // Vypocet prahovej hodnoty pomocou Otsu metody
                     stopwatchThresholding.Restart();
                     int otsuThreshold = originalImage.CalculateOtsuThreshold(combinedData);
                     stopwatchThresholding.Stop();
                     thresholdValue = otsuThreshold;
-                    changeThrashold = true;
+                    changeThreshold = true;
                 }
 
                 numericUpDownThreshold.Value = thresholdValue;
 
-                // Apply thresholding to the high-pass filtered data
+                // Aplikácia prahovania na obrazok
                 stopwatchThresholding.Start();
                 Bitmap bitmap = originalImage.ApplyThreshold(combinedData, thresholdValue);
                 stopwatchThresholding.Stop();
                 g.DrawImage(bitmap, new Point(0, 0));
 
-                // Get the center of the line from the high-pass data
-                stopwatchCenterFinding.Restart();
-                PointF? center = originalImage.GetLineCenter(combinedData, thresholdValue);
-                stopwatchCenterFinding.Stop();
-
-                if (center.HasValue)
-                {
-                    // Draw a red circle at the center point
-                    float radius = 5f;
-                    using (Brush brush = new SolidBrush(Color.Red))
-                    {
-                        g.FillEllipse(brush, center.Value.X - radius, center.Value.Y - radius, radius * 2, radius * 2);
-                    }
-                }
-
-                // Extract curve points
+                // Zistenie bodov krivky
                 List<Point> curvePoints = originalImage.ExtractCurvePoints(thresholdValue);
 
-                // Simplify points
+                // Zjednodusenie krivky pomocou Ramer-Douglas-Peucker algoritmu
                 stopwatchRDP.Restart();
                 simplifiedCurvePoints = GeometryUtils.RamerDouglasPeucker(curvePoints, RDP_EPSILON);
                 stopwatchRDP.Stop();
@@ -106,12 +90,10 @@ namespace cv1
 
                     try
                     {
-                        // Fit cubic Bezier
                         stopwatchBezierFitting.Restart();
                         MathNetVector[] bezierPoints = FitCubicBezier(vectors, combinedData, thresholdValue);
                         stopwatchBezierFitting.Stop();
 
-                        // Draw Bezier curve
                         using (Pen pen = new Pen(Color.Blue, 2))
                         {
                             PointF start = new((float)bezierPoints[0][0], (float)bezierPoints[0][1]);
@@ -124,7 +106,6 @@ namespace cv1
                     }
                     catch (Exception ex)
                     {
-                        // Optional: Handle exceptions
                         Console.WriteLine($"Bezier fitting error: {ex.Message}");
                     }
                 }
@@ -138,7 +119,6 @@ namespace cv1
             labelProcessingTime.Text = $"Total: {stopwatchTotal.ElapsedMilliseconds} ms\n" +
                                        $"Filtering: {stopwatchFiltering.ElapsedMilliseconds} ms\n" +
                                        $"Thresholding: {stopwatchThresholding.ElapsedMilliseconds} ms\n" +
-                                       $"Center Finding: {stopwatchCenterFinding.ElapsedMilliseconds} ms\n" +
                                        $"RDP: {stopwatchRDP.ElapsedMilliseconds} ms\n" +
                                        $"Bezier Fitting: {stopwatchBezierFitting.ElapsedMilliseconds} ms";
         }
@@ -163,7 +143,7 @@ namespace cv1
             MathNetVector P0 = MathNetVector.Build.DenseOfArray(new double[] { p0.Value.X, p0.Value.Y });
             MathNetVector P3 = MathNetVector.Build.DenseOfArray(new double[] { p3.Value.X, p3.Value.Y });
 
-            // Parameter t values for each point (chord length parameterization)
+            // Parameter t pre jednotlivé body
             double[] t = new double[n];
             t[0] = 0;
 
@@ -189,9 +169,9 @@ namespace cv1
                 double ttt = tt * t[i];
                 double uuu = uu * u;
 
-                // Poznamka: riešiem pre P1 a P2, P0 a P3 zostanu fixné
-                A[i, 0] = 3 * uu * t[i]; // Coefficient for P1
-                A[i, 1] = 3 * u * tt;    // Coefficient for P2
+                //Riešenie P1 a P2
+                A[i, 0] = 3 * uu * t[i];
+                A[i, 1] = 3 * u * tt;
 
                 Bx[i] = points[i][0] - (uuu * P0[0] + ttt * P3[0]);
                 By[i] = points[i][1] - (uuu * P0[1] + ttt * P3[1]);
@@ -201,7 +181,6 @@ namespace cv1
             var solutionX = A.QR().Solve(Bx);
             var solutionY = A.QR().Solve(By);
 
-            // Extract control points
             MathNetVector P1 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(2);
             MathNetVector P2 = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(2);
 
@@ -245,7 +224,7 @@ namespace cv1
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             ReloadImage();
-            changeThrashold = false;
+            changeThreshold = false;
         }
 
         private void numericUpDownWidth_ValueChanged(object sender, EventArgs e)
@@ -320,7 +299,7 @@ namespace cv1
                 return;
 
             string[] files = Directory.GetFiles(selectedPath);
-            changeThrashold = false;
+            changeThreshold = false;
 
             foreach (string file in files)
             {

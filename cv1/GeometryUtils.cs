@@ -9,11 +9,11 @@ namespace cv1
     public class GeometryUtils
     {
         /// <summary>
-        /// Simplifies a curve using the Ramer–Douglas–Peucker algorithm.
+        /// Zjednodusenie polygonu pomocou Ramer-Douglas-Peucker algoritmu.
         /// </summary>
-        /// <param name="points">List of points defining the curve.</param>
-        /// <param name="epsilon">Threshold distance for simplification.</param>
-        /// <returns>Simplified list of points.</returns>
+        /// <param name="points">List bodov definované krivkou</param>
+        /// <param name="epsilon">Prahová hodnota vzdialenosti pre zjednodušenie</param>
+        /// <returns>List zjednodušených bodov</returns>
         public static List<Point> RamerDouglasPeucker(List<Point> points, double epsilon)
         {
             if (points == null || points.Count < 3)
@@ -22,7 +22,7 @@ namespace cv1
             int index = -1;
             double maxDist = 0;
 
-            // Find the point with the maximum distance
+            // Hladanie bodu s najvacsiou vzdialenostou
             for (int i = 1; i < points.Count - 1; i++)
             {
                 double dist = PerpendicularDistance(points[i], points[0], points[points.Count - 1]);
@@ -33,7 +33,7 @@ namespace cv1
                 }
             }
 
-            // If max distance is greater than epsilon, recursively simplify
+            // Ak je vzdialenost vacsia ako epsilon, rekurzivne volanie
             if (maxDist > epsilon)
             {
                 // Recursive call
@@ -47,7 +47,7 @@ namespace cv1
             }
             else
             {
-                // If max distance is less than epsilon, return start and end points
+                // Ak nie je, vrati zaciatocny a koncovy bod
                 return new List<Point> { points[0], points[points.Count - 1] };
             }
         }

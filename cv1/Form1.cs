@@ -102,14 +102,13 @@ namespace cv1
 
                 if (simplifiedCurvePoints.Count >= 4)
                 {
-                    // Convert to MathNetVector[]
                     MathNetVector[] vectors = ConvertPoints(simplifiedCurvePoints);
 
                     try
                     {
                         // Fit cubic Bezier
                         stopwatchBezierFitting.Restart();
-                        MathNetVector[] bezierPoints = FitCubicBezier(vectors);
+                        MathNetVector[] bezierPoints = FitCubicBezier(vectors, combinedData, thresholdValue);
                         stopwatchBezierFitting.Stop();
 
                         // Draw Bezier curve
@@ -119,11 +118,6 @@ namespace cv1
                             PointF control1 = new((float)bezierPoints[1][0], (float)bezierPoints[1][1]);
                             PointF control2 = new((float)bezierPoints[2][0], (float)bezierPoints[2][1]);
                             PointF end = new((float)bezierPoints[3][0], (float)bezierPoints[3][1]);
-                            Console.WriteLine($"P0: {bezierPoints[0][0]}, {bezierPoints[0][1]}");
-                            Console.WriteLine($"P1: {bezierPoints[1][0]}, {bezierPoints[1][1]}");
-                            Console.WriteLine($"P2: {bezierPoints[2][0]}, {bezierPoints[2][1]}");
-                            Console.WriteLine($"P3: {bezierPoints[3][0]}, {bezierPoints[3][1]}");
-
 
                             g.DrawBezier(pen, start, control1, control2, end);
                         }
@@ -154,7 +148,7 @@ namespace cv1
             return points.Select(p => MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(new double[] { p.X, p.Y })).ToArray();
         }
 
-        private MathNetVector[] FitCubicBezier(MathNetVector[] points)
+        private MathNetVector[] FitCubicBezier(MathNetVector[] points, byte[,] inputData, int threshold)
         {
             int n = points.Length;
 
@@ -163,9 +157,11 @@ namespace cv1
                 throw new ArgumentException("At least 4 points are required to fit a cubic Bezier curve.");
             }
 
-            // Fixed control points
-            MathNetVector P0 = points[0];
-            MathNetVector P3 = points[n - 1];
+            var p0 = originalImage.GetStartCenter(inputData, threshold);
+            var p3 = originalImage.GetEndCenter(inputData, threshold);
+
+            MathNetVector P0 = MathNetVector.Build.DenseOfArray(new double[] { p0.Value.X, p0.Value.Y });
+            MathNetVector P3 = MathNetVector.Build.DenseOfArray(new double[] { p3.Value.X, p3.Value.Y });
 
             // Parameter t values for each point (chord length parameterization)
             double[] t = new double[n];
@@ -180,7 +176,7 @@ namespace cv1
                 t[i] /= t[n - 1];
             }
 
-            // Create matrix A and vectors Bx, By for least squares solution
+            // Vytvorenie matice A a vektorov Bx, By pre vyriešenie najmenších štvorcov
             var A = Matrix<double>.Build.Dense(n, 2);
             var Bx = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(n);
             var By = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(n);
@@ -193,7 +189,7 @@ namespace cv1
                 double ttt = tt * t[i];
                 double uuu = uu * u;
 
-                // Note: we are solving for P1 and P2, so we use the fixed P0 and P3
+                // Poznamka: riešiem pre P1 a P2, P0 a P3 zostanu fixné
                 A[i, 0] = 3 * uu * t[i]; // Coefficient for P1
                 A[i, 1] = 3 * u * tt;    // Coefficient for P2
 
@@ -201,7 +197,7 @@ namespace cv1
                 By[i] = points[i][1] - (uuu * P0[1] + ttt * P3[1]);
             }
 
-            // Solve the least squares problem
+            // Vyriešenie metódy najmenších štvorcov
             var solutionX = A.QR().Solve(Bx);
             var solutionY = A.QR().Solve(By);
 
@@ -288,7 +284,7 @@ namespace cv1
             using (Brush brush = new SolidBrush(Color.Red))
             using (Pen pen = new Pen(Color.Purple))
             {
-                for (int i = 0; i <= 255; i += 25) // Adjust interval as needed
+                for (int i = 0; i <= 255; i += 25)
                 {
                     int x = i * barWidth;
                     g.DrawLine(pen, x, panelHistogram.Height, x, panelHistogram.Height - 10);

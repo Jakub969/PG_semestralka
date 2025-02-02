@@ -24,7 +24,7 @@ namespace cv1
 
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
-                // Read the Y component (luminance)
+                // Prečítanie Y (luminance)
                 for (int y = 0; y < Height; y++)
                 {
                     int offset = y * Width;
@@ -44,7 +44,7 @@ namespace cv1
                     }
                 }
 
-                // Skip over the U and V components
+                // Preskočenie U a V (chrominance)
                 long uvSize = (long)(Width * Height / 2);
                 fs.Seek(uvSize, SeekOrigin.Current);
             }
@@ -197,6 +197,52 @@ namespace cv1
 
             return new PointF(centerX, centerY);
         }
+        public PointF? GetStartCenter(byte[,] inputData, int threshold)
+        {
+            long sumX = 0;
+            int count = 0;
+
+            
+            for (int x = 0; x < Width; x++)
+            {
+                // Check if the pixel is below the threshold
+                if (inputData[0, x] < threshold)
+                {
+                        sumX += x;
+                        count++;
+                }
+            }
+
+            if (count == 0)
+                return null;
+
+            float centerX = (float)sumX / count;
+
+            return new PointF(centerX, 0);
+        }
+
+        public PointF? GetEndCenter(byte[,] inputData, int threshold)
+        {
+            long sumX = 0;
+            int count = 0;
+
+            for (int x = 0; x < Width; x++)
+            {
+                // Check if the pixel is below the threshold
+                if (inputData[Height - 1, x] < threshold)
+                {
+                    sumX += x;
+                    count++;
+                }
+            }
+
+            if (count == 0)
+                return null;
+
+            float centerX = (float)sumX / count;
+
+            return new PointF(centerX, Height - 1);
+        }
 
         private double[,] GenerateGaussianKernel(int size, double sigma)
         {
@@ -263,13 +309,12 @@ namespace cv1
         }
         public byte[,] ApplyGaussianHighPassFilter()
         {
-            // Generate a Gaussian kernel (e.g., size 5, sigma 1.0)
             double[,] gaussianKernel = GenerateGaussianKernel(7, 2.0);
 
-            // Apply Gaussian blur to get the low-pass (blurred) image
+            // Použitie konvolúcie na získanie nízkofrekvenčných dát
             byte[,] lowPassData = Convolve(Data, gaussianKernel);
 
-            // Subtract the low-pass image from the original to get high-pass data
+            // Vyčítanie nízkofrekvenčných dát z pôvodných dát
             int width = Data.GetLength(1);
             int height = Data.GetLength(0);
             byte[,] highPassData = new byte[height, width];
@@ -279,24 +324,19 @@ namespace cv1
                 for (int x = 0; x < width; x++)
                 {
                     int value = Data[y, x] - lowPassData[y, x];
-                    // Adjust the value to ensure it's within the byte range
+                    // Upravenie hodnoty, aby bola v rozsahu byte
                     value = Math.Clamp(value + 128, 0, 255);
                     highPassData[y, x] = (byte)value;
                 }
             }
-
             return highPassData;
         }
 
         public byte[,] ApplyCombinedFilter()
         {
-            // Generate a Gaussian kernel (e.g., size 7, sigma 2.0)
             double[,] gaussianKernel = GenerateGaussianKernel(7, 2.0);
-
-            // Apply Gaussian blur to get the low-pass (blurred) image
             byte[,] lowPassData = Convolve(Data, gaussianKernel);
 
-            // Subtract the low-pass image from the original to get high-pass data
             int width = Data.GetLength(1);
             int height = Data.GetLength(0);
             byte[,] highPassData = new byte[height, width];
@@ -306,16 +346,14 @@ namespace cv1
                 for (int x = 0; x < width; x++)
                 {
                     int value = Data[y, x] - lowPassData[y, x];
-                    // Adjust the value to ensure it's within the byte range
                     value = Math.Clamp(value + 128, 0, 255);
                     highPassData[y, x] = (byte)value;
                 }
             }
-
-            // Apply median filter to reduce noise
+            // Použitie mediánového filtra na vysokofrekvenčné dáta
             byte[,] filteredData = ApplyMedianFilter(highPassData, 3);
 
-            // Combine the original image with the high-pass filtered image
+            // Kombinácia originálnych dát a filtrovaných dát
             byte[,] combinedData = new byte[height, width];
             for (int y = 0; y < height; y++)
             {
@@ -324,7 +362,6 @@ namespace cv1
                     combinedData[y, x] = (byte)Math.Clamp((Data[y, x] + filteredData[y, x]) / 2, 0, 255);
                 }
             }
-
             return combinedData;
         }
 

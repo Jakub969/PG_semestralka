@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing.Imaging;
 
 namespace cv1
 {
@@ -163,7 +157,6 @@ namespace cv1
                     threshold = t;
                 }
             }
-
             return threshold;
         }
 
@@ -306,7 +299,7 @@ namespace cv1
         }
         public byte[,] ApplyGaussianHighPassFilter()
         {
-            double[,] gaussianKernel = GenerateGaussianKernel(5, 1.0);
+            double[,] gaussianKernel = GenerateGaussianKernel(7, 2.0);
 
             // Použitie konvolúcie na získanie nízkofrekvenčných dát
             byte[,] lowPassData = Convolve(Data, gaussianKernel);

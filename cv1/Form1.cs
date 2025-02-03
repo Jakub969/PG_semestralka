@@ -1,8 +1,4 @@
 using System.Data;
-using System.Drawing.Drawing2D;
-using System.Geometry;
-using System.IO;
-using System.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNetVector = MathNet.Numerics.LinearAlgebra.Vector<double>;
 using System.Diagnostics;
@@ -140,8 +136,27 @@ namespace cv1
             var p0 = originalImage.GetStartCenter(inputData, threshold);
             var p3 = originalImage.GetEndCenter(inputData, threshold);
 
-            MathNetVector P0 = MathNetVector.Build.DenseOfArray(new double[] { p0.Value.X, p0.Value.Y });
-            MathNetVector P3 = MathNetVector.Build.DenseOfArray(new double[] { p3.Value.X, p3.Value.Y });
+            MathNetVector P0, P3;
+
+            // Ak p0 neexistuje, použijeme points[0]
+            if (p0.HasValue)
+            {
+                P0 = MathNetVector.Build.DenseOfArray(new double[] { p0.Value.X, p0.Value.Y });
+            }
+            else
+            {
+                P0 = points[0];
+            }
+
+            // Ak p3 neexistuje, použijeme points[n-1]
+            if (p3.HasValue)
+            {
+                P3 = MathNetVector.Build.DenseOfArray(new double[] { p3.Value.X, p3.Value.Y });
+            }
+            else
+            {
+                P3 = points[n - 1];
+            }
 
             // Parameter t pre jednotlivé body
             double[] t = new double[n];

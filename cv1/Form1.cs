@@ -69,16 +69,22 @@ namespace cv1
                 // Zistenie bodov krivky
                 List<Point> curvePoints = originalImage.ExtractCurvePoints(thresholdValue);
 
-                // Zjednodusenie krivky pomocou Ramer-Douglas-Peucker algoritmu
-                stopwatchRDP.Restart();
-                simplifiedCurvePoints = GeometryUtils.RamerDouglasPeucker(curvePoints, RDP_EPSILON);
-                stopwatchRDP.Stop();
-
-                foreach (var point in simplifiedCurvePoints)
+                if (rdpCheckBox.Checked)
                 {
-                    g.FillEllipse(Brushes.Green, point.X - 2, point.Y - 2, 4, 4);
-                }
+                    // Zjednodusenie krivky pomocou Ramer-Douglas-Peucker algoritmu
+                    stopwatchRDP.Restart();
+                    simplifiedCurvePoints = GeometryUtils.RamerDouglasPeucker(curvePoints, RDP_EPSILON);
+                    stopwatchRDP.Stop();
 
+                    foreach (var point in simplifiedCurvePoints)
+                    {
+                        g.FillEllipse(Brushes.Green, point.X - 2, point.Y - 2, 4, 4);
+                    }
+                }
+                else
+                {
+                    simplifiedCurvePoints = curvePoints;
+                }
 
                 if (simplifiedCurvePoints.Count >= 4)
                 {

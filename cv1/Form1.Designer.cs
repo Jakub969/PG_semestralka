@@ -46,6 +46,7 @@
             doubleBufferPanelDrawing = new DoubleBufferPanel();
             labelProcessingTime = new Label();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            rdpCheckBox = new CheckBox();
             panelTools.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDownThreshold).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).BeginInit();
@@ -57,6 +58,7 @@
             // panelTools
             // 
             panelTools.BackColor = SystemColors.AppWorkspace;
+            panelTools.Controls.Add(rdpCheckBox);
             panelTools.Controls.Add(gaussFilter);
             panelTools.Controls.Add(label3);
             panelTools.Controls.Add(numericUpDownThreshold);
@@ -224,6 +226,16 @@
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
+            // rdpCheckBox
+            // 
+            rdpCheckBox.AutoSize = true;
+            rdpCheckBox.Location = new Point(14, 253);
+            rdpCheckBox.Name = "rdpCheckBox";
+            rdpCheckBox.Size = new Size(87, 24);
+            rdpCheckBox.TabIndex = 9;
+            rdpCheckBox.Text = "Use RDP";
+            rdpCheckBox.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -267,5 +279,6 @@
         private Label labelThreshold;
         private Label labelProcessingTime;
         private CheckBox gaussFilter;
+        private CheckBox rdpCheckBox;
     }
 }
